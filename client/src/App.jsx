@@ -40,7 +40,7 @@ function App() {
     <div className="min-h-screen bg-[#F7F8FA] flex flex-col">
       <Header />
       
-      <main className="flex-1 max-w-[900px] mx-auto w-full px-6 py-10">
+      <main className="flex-1 max-w-225 mx-auto w-full px-6 py-10">
         
         {/* Input Section */}
         {!results && !loading && (
@@ -85,7 +85,7 @@ function App() {
         {error && !loading && (
           <div className="bg-white rounded border border-red-200 p-6 shadow-sm">
             <div className="flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+              <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
               <div>
                 <h3 className="font-semibold text-[#1A202C] mb-1">Something went wrong</h3>
                 <p className="text-[#5A6677] text-sm mb-4">{error}</p>
@@ -150,7 +150,7 @@ function App() {
             {/* Study Tip */}
             {results.study_tip && (
               <div className="bg-[#FBF6E9] rounded border border-[#E8D5A3] p-5 flex gap-4">
-                <div className="w-10 h-10 bg-[#C9A227] rounded flex items-center justify-center flex-shrink-0">
+                <div className="w-10 h-10 bg-[#C9A227] rounded flex items-center justify-center shrink-0">
                   <Lightbulb className="w-5 h-5 text-white" />
                 </div>
                 <div>
@@ -177,7 +177,7 @@ function App() {
       {/* Footer */}
       <footer className="py-6 border-t border-[#E2E6EB] text-center">
         <p className="text-sm text-[#5A6677]">
-          © 2024 Athena · AI Study Companion
+          © 2026 Athena · RIEL Inc
         </p>
       </footer>
     </div>

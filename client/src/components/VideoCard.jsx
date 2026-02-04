@@ -35,7 +35,7 @@ export default function VideoCard({ video, index }) {
       <div className="flex">
         {/* Thumbnail */}
         {video.thumbnail && (
-          <div className="relative flex-shrink-0 w-44 h-28">
+          <div className="relative shrink-0 w-44 h-28">
             <img 
               src={video.thumbnail} 
               alt={video.title}
@@ -60,7 +60,7 @@ export default function VideoCard({ video, index }) {
           <div className="flex items-start justify-between gap-3 mb-2">
             <h4 className="font-semibold text-[#1A202C] leading-tight line-clamp-2">{video.title}</h4>
             {video.difficulty && (
-              <span className={`flex-shrink-0 px-2 py-0.5 rounded-sm text-xs font-medium uppercase tracking-wide ${difficulty.class}`}>
+              <span className={`shrink-0 px-2 py-0.5 rounded-sm text-xs font-medium uppercase tracking-wide ${difficulty.class}`}>
                 {difficulty.label}
               </span>
             )}
