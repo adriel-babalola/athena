@@ -341,7 +341,16 @@ Return ONLY valid JSON:
             data.key_concepts,
             videos,
           );
-          data.videos = verifiedVideos.slice(0, 4);
+          
+          // Deduplicate by videoId before returning
+          const seenIds = new Set();
+          data.videos = verifiedVideos.filter(video => {
+            if (seenIds.has(video.videoId)) {
+              return false;
+            }
+            seenIds.add(video.videoId);
+            return true;
+          }).slice(0, 4);
         }
       } else {
         data.videos = [];
