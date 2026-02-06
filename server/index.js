@@ -16,7 +16,7 @@ const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
 
 // Initialize Gemini
 const API_KEY = process.env.GEMINI_API_KEY;
@@ -147,6 +147,140 @@ Return ONLY valid JSON:
     }
 
     res.status(500).json({ error: 'Failed to process request. Please try again.' });
+  }
+});
+
+// New endpoint: Find videos for an uploaded image
+app.post('/api/find-videos-image', async (req, res) => {
+  try {
+    const { image } = req.body;
+
+    if (!image) {
+      return res.status(400).json({ error: 'Image is required' });
+    }
+
+    // Extract base64 data (remove data:image/...;base64, prefix if present)
+    let base64Data = image;
+    if (image.includes(',')) {
+      base64Data = image.split(',')[1];
+    }
+
+    // Validate base64 is not empty
+    if (!base64Data || base64Data.length === 0) {
+      return res.status(400).json({ error: 'Image data is invalid' });
+    }
+
+    console.log('[Image] Processing base64 image, size:', base64Data.length);
+
+    const model = genAI.getGenerativeModel({
+      model: GEMINI_MODEL,
+      generationConfig: {
+        temperature: 0.7,
+        maxOutputTokens: 1024,
+      },
+    });
+
+    const prompt = `You are Athena, an expert AI study companion designed to help students deeply understand difficult academic concepts.
+
+## YOUR MISSION
+A student has uploaded an image (screenshot, textbook page, notes, etc.) that they're struggling to understand. 
+Analyze this image and help them learn.
+
+## ANALYSIS INSTRUCTIONS
+1. **Identify the EXACT Topic**: What specific concept or topic is shown in the image? (e.g., "Photosynthesis", not just "biology")
+2. **Extract Key Information**: What are the main points or concepts visible?
+3. **Generate YouTube Search Queries**: Create 3 search queries that DIRECTLY explain this specific topic.
+
+## SEARCH QUERY GUIDELINES
+- **CRITICAL**: All queries must be about the SAME main topic, just at different depths
+- Include trusted channel names ("3Blue1Brown", "Khan Academy", "Crash Course", "Professor Leonard", "Organic Chemistry Tutor")
+- Be SPECIFIC - use the exact terminology from the image
+- Example for "Photosynthesis":
+  - Beginner: "Khan Academy photosynthesis simple explanation"
+  - Intermediate: "Professor Leonard photosynthesis detailed process"
+  - Advanced: "Photosynthesis light-dependent reactions electron transport chain"
+
+## RESPONSE FORMAT
+Return ONLY valid JSON:
+{
+  "overview": "A brief 2-3 sentence explanation of the concept visible in the image.",
+  "key_concepts": ["main_topic", "related_concept1", "related_concept2"],
+  "search_queries": [
+    {"query": "specific topic beginner explanation channel_name", "difficulty": "beginner"},
+    {"query": "specific topic detailed explanation channel_name", "difficulty": "intermediate"},
+    {"query": "specific topic advanced applications", "difficulty": "advanced"}
+  ],
+  "study_tip": "A helpful tip for understanding this topic based on the image"
+}`;
+
+    let result, response, responseText;
+    try {
+      result = await model.generateContent([
+        {
+          inlineData: {
+            mimeType: 'image/png',
+            data: base64Data,
+          },
+        },
+        prompt,
+      ]);
+      response = await result.response;
+      responseText = response.text();
+      console.log('[Gemini] Image API call successful');
+    } catch (err) {
+      console.error('[Gemini] Image API call failed:', err);
+      throw err;
+    }
+
+    // Clean the response
+    const cleanedText = responseText
+      .replace(/```json\n?/g, '')
+      .replace(/```\n?/g, '')
+      .trim();
+
+    const data = JSON.parse(cleanedText);
+    
+    // Search YouTube for real videos using Gemini's search queries
+    if (Array.isArray(data.search_queries) && data.search_queries.length > 0) {
+      console.log('[Gemini] Generated search queries:', data.search_queries);
+      
+      const videos = await searchMultipleQueries(data.search_queries, 2);
+      
+      if (videos.length > 0) {
+        if (SKIP_VERIFICATION) {
+          console.log('[Speed] Skipping verification for faster response');
+          const difficultyOrder = { beginner: 0, intermediate: 1, advanced: 2 };
+          data.videos = videos
+            .sort((a, b) => (difficultyOrder[a.difficulty] || 1) - (difficultyOrder[b.difficulty] || 1))
+            .slice(0, 4);
+        } else {
+          const verifiedVideos = await verifyVideosRelevance(model, data.overview || 'the topic', data.key_concepts, videos);
+          data.videos = verifiedVideos.slice(0, 4);
+        }
+      } else {
+        data.videos = [];
+      }
+      
+      console.log(`[YouTube] Final video count: ${data.videos.length}`);
+      delete data.search_queries;
+    } else {
+      data.videos = [];
+    }
+    
+    res.json(data);
+
+  } catch (error) {
+    console.error('Image API Error:', error);
+
+    if (error.message?.includes('API key')) {
+      return res.status(401).json({ error: 'Invalid API key. Check server .env file.' });
+    }
+
+    if (error instanceof SyntaxError) {
+      return res.status(500).json({ error: 'Failed to parse image. Please try again.' });
+    }
+
+    res.status(500).json({ error: 'Failed to process image. Please try again.' });
   }
 });
 

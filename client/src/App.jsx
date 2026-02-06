@@ -1,26 +1,34 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import './App.css'
-import { Search, BookOpen, RotateCcw, Lightbulb, AlertCircle } from 'lucide-react';
+import { BookOpen, RotateCcw, Lightbulb, AlertCircle, Paperclip, Send, X } from 'lucide-react';
 import Header from './components/Header';
 import VideoCard from './components/VideoCard';
 import LoadingState from './components/LoadingState';
-import { findVideosForText } from './services/geminiAPI';
+import { findVideosForText, findVideosForImage } from './services/geminiAPI';
 
 function App() {
   const [inputText, setInputText] = useState('');
+  const [inputImage, setInputImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState(null);
   const [error, setError] = useState(null);
+  const fileInputRef = useRef(null);
 
   const handleSearch = async () => {
-    if (!inputText.trim()) return;
+    if (!inputText.trim() && !inputImage) return;
     
     setLoading(true);
     setError(null);
     setResults(null);
     
     try {
-      const data = await findVideosForText(inputText);
+      let data;
+      if (inputImage) {
+        data = await findVideosForImage(inputImage);
+      } else {
+        data = await findVideosForText(inputText);
+      }
       setResults(data);
     } catch (err) {
       setError(err.message || 'Something went wrong. Try again.');
@@ -28,6 +36,47 @@ function App() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const base64 = event.target?.result;
+        setInputImage(base64);
+        setImagePreview(base64);
+        setInputText('');
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handlePaste = (e) => {
+    const items = e.clipboardData?.items || [];
+    for (let item of items) {
+      if (item.type.startsWith('image/')) {
+        e.preventDefault();
+        const file = item.getAsFile();
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            const base64 = event.target?.result;
+            setInputImage(base64);
+            setImagePreview(base64);
+            setInputText('');
+          };
+          reader.readAsDataURL(file);
+        }
+        return;
+      }
+    }
+  };
+
+  const clearImage = () => {
+    setInputImage(null);
+    setImagePreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const handleSearchAgain = () => {
@@ -50,28 +99,62 @@ function App() {
               <h2 className="text-xl font-semibold text-[#1A202C]">New Study Session</h2>
             </div>
             
-            <div className="bg-white rounded border border-[#E2E6EB] p-6 shadow-sm">
-              <label className="block mb-4">
-                <p className="text-[#1A202C] font-medium mb-3">
-                  Paste text you're struggling to understand
-                </p>
-                <textarea
-                  value={inputText}
-                  onChange={(e) => setInputText(e.target.value)}
-                  placeholder="Enter complex concepts, textbook paragraphs, or research notes here..."
-                  className="w-full h-44 rounded border border-[#E2E6EB] p-4 text-[#1A202C] placeholder:text-[#9CA3AF] resize-none outline-none"
+            <div className="bg-white rounded-xl border border-[#E2E6EB] shadow-lg hover:shadow-md transition-shadow">
+              <div className="p-4 space-y-4">
+                {!imagePreview ? (
+                  <textarea
+                    value={inputText}
+                    onChange={(e) => setInputText(e.target.value)}
+                    onPaste={handlePaste}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && e.ctrlKey) handleSearch();
+                    }}
+                    placeholder="Ask anything or paste an image with Ctrl+V..."
+                    className="w-full h-40 rounded-xl border-0 p-4 text-[#1A202C] placeholder:text-[#9CA3AF] resize-none outline-none focus:border-[#1E3A5F] bg-[#FAFBFC]"
+                    disabled={loading}
+                  />
+                ) : (
+                  <div className="relative inline-block">
+                    <img
+                      src={imagePreview}
+                      alt="Preview"
+                      className="max-h-40 max-w-full object-contain rounded-lg border border-[#E2E6EB] p-2 bg-[#FAFBFC]"
+                    />
+                    <button
+                      onClick={clearImage}
+                      className="absolute -top-3 -right-3 bg-red-500 hover:bg-red-600 text-white rounded-full p-1.5 transition-colors shadow-md"
+                      title="Remove image"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+              </div>
+              
+              <div className="flex items-center justify-between px-4 py-3 border-t border-[#E2E6EB] bg-[#FAFBFC] rounded-b-2xl">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
                   disabled={loading}
                 />
-              </label>
-              
-              <div className="flex justify-end">
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={loading}
+                  className="p-2.5 text-[#1E3A5F] hover:bg-[#F0F3F7] rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:text-[#1E3A5F]"
+                  title="Attach image (or paste with Ctrl+V)"
+                >
+                  <Paperclip className="w-5 h-5" />
+                </button>
+                <div className="text-xs text-[#9CA3AF] ml-2">Ctrl+V to paste</div>
                 <button
                   onClick={handleSearch}
-                  disabled={!inputText.trim() || loading}
-                  className="bg-[#1E3A5F] hover:bg-[#152C4A] disabled:bg-[#9CA3AF] text-white px-6 py-2.5 rounded font-medium transition-colors flex items-center gap-2 disabled:cursor-not-allowed"
+                  disabled={(!inputText.trim() && !imagePreview) || loading}
+                  className="ml-auto bg-[#1E3A5F] hover:bg-[#152C4A] disabled:bg-[#D1D5DB] text-white px-5 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2 disabled:cursor-not-allowed hover:shadow-md"
                 >
-                  <Search className="w-4 h-4" />
-                  <span>Help Me Understand</span>
+                  <Send className="w-4 h-4" />
                 </button>
               </div>
             </div>
