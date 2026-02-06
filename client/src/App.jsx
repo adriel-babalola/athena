@@ -107,10 +107,13 @@ function App() {
                     onChange={(e) => setInputText(e.target.value)}
                     onPaste={handlePaste}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter' && e.ctrlKey) handleSearch();
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSearch();
+                      }
                     }}
                     placeholder="Ask anything or paste an image with Ctrl+V..."
-                    className="w-full h-40 rounded-xl border-0 p-4 text-[#1A202C] placeholder:text-[#9CA3AF] resize-none outline-none focus:border-[#1E3A5F] bg-[#FAFBFC]"
+                    className="w-full h-40 rounded-md border-0 p-4 text-[#1A202C] placeholder:text-[#9CA3AF] resize-none outline-none focus:border-[#1E3A5F] bg-[#FAFBFC]"
                     disabled={loading}
                   />
                 ) : (
