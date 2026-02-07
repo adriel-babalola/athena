@@ -104,7 +104,7 @@ function App() {
     <div className="min-h-screen bg-[#F7F8FA] flex flex-col">
       <Header />
       
-      <main className="flex-1 max-w-225 mx-auto w-full px-6 py-10">
+      <main className="flex-1 max-w-225 mx-auto w-full px-4 sm:px-6 py-6 sm:py-10">
         
         {/* Input Section */}
         {!results && !loading && (
@@ -184,7 +184,7 @@ function App() {
         
         {/* Error */}
         {error && !loading && (
-          <div className="bg-white rounded border border-red-200 p-6 shadow-sm">
+          <div className="bg-white rounded-lg border border-red-200 p-4 sm:p-6 shadow-sm">
             <div className="flex items-start gap-3">
               <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
               <div>
@@ -203,14 +203,14 @@ function App() {
         
         {/* Results */}
         {results && !loading && (
-          <div className="space-y-8">
+          <div className="space-y-6 sm:space-y-8">
             
             {/* Overview Card */}
-            <div className="bg-white rounded border-l-4 border-l-[#1E3A5F] border-y border-r border-[#E2E6EB] p-6 shadow-sm">
+            <div className="bg-white rounded-lg border-l-4 border-l-[#1E3A5F] border-y border-r border-[#E2E6EB] p-4 sm:p-6 shadow-sm">
               <h3 className="text-[#1E3A5F] font-semibold text-xs uppercase tracking-widest mb-3">
                 Quick Overview
               </h3>
-              <p className="text-[#1A202C] leading-relaxed text-lg">
+              <p className="text-[#1A202C] leading-relaxed text-base sm:text-lg">
                 {results.overview}
               </p>
             </div>
@@ -240,7 +240,7 @@ function App() {
                 <h3 className="text-xs font-semibold text-[#5A6677] uppercase tracking-widest mb-4">
                   Recommended Videos
                 </h3>
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {results.videos.map((video, index) => (
                     <VideoCard key={index} video={video} index={index} />
                   ))}
@@ -250,13 +250,13 @@ function App() {
             
             {/* Study Tip */}
             {results.study_tip && (
-              <div className="bg-[#FBF6E9] rounded border border-[#E8D5A3] p-5 flex gap-4">
-                <div className="w-10 h-10 bg-[#C9A227] rounded flex items-center justify-center shrink-0">
-                  <Lightbulb className="w-5 h-5 text-white" />
+              <div className="bg-[#FBF6E9] rounded-lg border border-[#E8D5A3] p-4 sm:p-5 flex gap-3 sm:gap-4">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 bg-[#C9A227] rounded flex items-center justify-center shrink-0">
+                  <Lightbulb className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <h3 className="font-semibold text-[#1A202C] mb-1">Study Tip</h3>
-                  <p className="text-[#5A6677] leading-relaxed">{results.study_tip}</p>
+                  <p className="text-[#5A6677] leading-relaxed text-sm sm:text-base">{results.study_tip}</p>
                 </div>
               </div>
             )}

@@ -15,7 +15,7 @@ export default defineConfig({
         short_name: 'Athena',
         description: 'Paste confusing text or images and get curated YouTube videos to help you learn.',
         theme_color: '#1E3A5F',
-        background_color: '#F7F8FA',
+        background_color: '#FFFFFF',
         display: 'standalone',
         orientation: 'portrait',
         scope: '/',
@@ -25,11 +25,13 @@ export default defineConfig({
             src: '/icon-192.png',
             sizes: '192x192',
             type: 'image/png',
+            purpose: 'any',
           },
           {
             src: '/icon-512.png',
             sizes: '512x512',
             type: 'image/png',
+            purpose: 'any',
           },
           {
             src: '/icon-512.png',

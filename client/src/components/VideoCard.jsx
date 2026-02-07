@@ -30,12 +30,12 @@ export default function VideoCard({ video, index }) {
       href={video.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="block bg-white rounded border border-[#E2E6EB] hover:border-[#1E3A5F] hover:shadow-md transition-all group"
+      className="block bg-white rounded-lg border border-[#E2E6EB] hover:border-[#1E3A5F] hover:shadow-md transition-all group overflow-hidden"
     >
-      <div className="flex">
+      <div className="flex flex-col sm:flex-row">
         {/* Thumbnail */}
         {video.thumbnail && (
-          <div className="relative shrink-0 w-44 h-28">
+          <div className="relative shrink-0 w-full sm:w-44 h-44 sm:h-28">
             <img 
               src={video.thumbnail} 
               alt={video.title}
@@ -46,7 +46,7 @@ export default function VideoCard({ video, index }) {
               <Play className="w-10 h-10 text-white opacity-0 group-hover:opacity-100 transition-opacity" fill="white" />
             </div>
             {/* Duration */}
-            <div className="absolute bottom-1 right-1 bg-black/80 text-white text-xs px-1.5 py-0.5 rounded-sm font-medium">
+            <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-1.5 py-0.5 rounded-sm font-medium">
               {video.duration}
             </div>
             {/* Step number */}
@@ -57,10 +57,10 @@ export default function VideoCard({ video, index }) {
         )}
         
         <div className="flex-1 p-4 min-w-0">
-          <div className="flex items-start justify-between gap-3 mb-2">
-            <h4 className="font-semibold text-[#1A202C] leading-tight line-clamp-2">{video.title}</h4>
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1 sm:gap-3 mb-2">
+            <h4 className="font-semibold text-[#1A202C] leading-tight line-clamp-2 text-base">{video.title}</h4>
             {video.difficulty && (
-              <span className={`shrink-0 px-2 py-0.5 rounded-sm text-xs font-medium uppercase tracking-wide ${difficulty.class}`}>
+              <span className={`self-start shrink-0 px-2 py-0.5 rounded-sm text-xs font-medium uppercase tracking-wide ${difficulty.class}`}>
                 {difficulty.label}
               </span>
             )}
