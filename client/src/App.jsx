@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import './App.css'
 import { BookOpen, RotateCcw, Lightbulb, AlertCircle, Paperclip, Send, X } from 'lucide-react';
 import Header from './components/Header';
@@ -15,7 +15,7 @@ function App() {
   const [error, setError] = useState(null);
   const fileInputRef = useRef(null);
 
-  const handleSearch = async () => {
+  const handleSearch = useCallback(async () => {
     if (!inputText.trim() && !inputImage) return;
     
     setLoading(true);
@@ -36,7 +36,7 @@ function App() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [inputText, inputImage]);
 
   const handleImageUpload = (e) => {
     const file = e.target.files?.[0];
@@ -78,6 +78,21 @@ function App() {
     setImagePreview(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
+
+  // Global Enter key listener when image is loaded (so Enter sends even without textarea)
+  const handleGlobalKeyDown = useCallback((e) => {
+    if (e.key === 'Enter' && !e.shiftKey && inputImage && !loading && !results) {
+      e.preventDefault();
+      handleSearch();
+    }
+  }, [inputImage, loading, results, handleSearch]);
+
+  useEffect(() => {
+    if (inputImage) {
+      window.addEventListener('keydown', handleGlobalKeyDown);
+      return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+    }
+  }, [inputImage, handleGlobalKeyDown]);
 
   const handleSearchAgain = () => {
     setResults(null);
